@@ -46,6 +46,7 @@ yarn-error.log*
 .idea
 
 docs/case-study.md
+docs/ROADMAP.md
 AGENTS.md
 
 .agent/
