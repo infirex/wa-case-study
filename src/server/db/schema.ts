@@ -1,26 +1,113 @@
-// Example model schema from the Drizzle docs
-// https://orm.drizzle.team/docs/sql-schema-declaration
+import { index, pgEnum, pgTable, unique } from 'drizzle-orm/pg-core'
 
-import { index, pgTableCreator } from 'drizzle-orm/pg-core'
+export const userRoleEnum = pgEnum('user_role', ['admin', 'creator'])
 
-/**
- * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
- * database instance for multiple projects.
- *
- * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
- */
-export const createTable = pgTableCreator((name) => `wa-case-study_${name}`)
+export const campaignStatusEnum = pgEnum('campaign_status', [
+  'draft',
+  'active',
+  'paused',
+  'completed',
+])
 
-export const posts = createTable(
-  'post',
+export const submissionStatusEnum = pgEnum('submission_status', [
+  'pending',
+  'approved',
+  'rejected',
+  'paid',
+])
+
+export const users = pgTable(
+  'user',
   (d) => ({
-    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: d.varchar({ length: 256 }),
+    id: d.text('id').primaryKey(),
+    email: d.text('email').notNull().unique(),
+    role: userRoleEnum('role').notNull().default('creator'),
     createdAt: d
-      .timestamp({ withTimezone: true })
-      .$defaultFn(() => /* @__PURE__ */ new Date())
+      .timestamp('created_at', { withTimezone: true })
+      .defaultNow()
       .notNull(),
-    updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+    updatedAt: d
+      .timestamp('updated_at', { withTimezone: true })
+      .$onUpdate(() => new Date()),
   }),
-  (t) => [index('name_idx').on(t.name)],
+  (t) => [index('user_email_idx').on(t.email)],
+)
+
+export const campaigns = pgTable(
+  'campaign',
+  (d) => ({
+    id: d.uuid('id').defaultRandom().primaryKey(),
+    title: d.text('title').notNull(),
+    platforms: d.json('platforms').$type<string[]>().notNull(),
+    payoutPer1kViews: d.integer('payout_per_1k_views').notNull(),
+    totalBudget: d.integer('total_budget').notNull(),
+    status: campaignStatusEnum('status').notNull().default('draft'),
+    startsAt: d.timestamp('starts_at', { withTimezone: true }).notNull(),
+    endsAt: d.timestamp('ends_at', { withTimezone: true }).notNull(),
+    createdAt: d
+      .timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: d
+      .timestamp('updated_at', { withTimezone: true })
+      .$onUpdate(() => new Date()),
+  }),
+  (t) => [index('campaign_status_idx').on(t.status)],
+)
+
+export const submissions = pgTable(
+  'submission',
+  (d) => ({
+    id: d.uuid('id').defaultRandom().primaryKey(),
+    campaignId: d
+      .uuid('campaign_id')
+      .notNull()
+      .references(() => campaigns.id, { onDelete: 'cascade' }),
+    creatorId: d
+      .text('creator_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    postUrl: d.text('post_url').notNull(),
+    platform: d.text('platform').notNull(),
+    status: submissionStatusEnum('status').notNull().default('pending'),
+    rejectionReason: d.text('rejection_reason'),
+    createdAt: d
+      .timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: d
+      .timestamp('updated_at', { withTimezone: true })
+      .$onUpdate(() => new Date()),
+  }),
+  (t) => [
+    index('submission_campaign_idx').on(t.campaignId),
+    index('submission_creator_idx').on(t.creatorId),
+    index('submission_status_idx').on(t.status),
+  ],
+)
+
+export const submissionMetrics = pgTable(
+  'submission_metric',
+  (d) => ({
+    id: d.uuid('id').defaultRandom().primaryKey(),
+    submissionId: d
+      .uuid('submission_id')
+      .notNull()
+      .references(() => submissions.id, { onDelete: 'cascade' }),
+    capturedAt: d.timestamp('captured_at', { withTimezone: true }).notNull(),
+    views: d.integer('views').notNull().default(0),
+    likes: d.integer('likes').notNull().default(0),
+    comments: d.integer('comments').notNull().default(0),
+    createdAt: d
+      .timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  }),
+  (t) => [
+    index('metric_submission_idx').on(t.submissionId),
+    unique('metric_submission_captured_unique').on(
+      t.submissionId,
+      t.capturedAt,
+    ),
+  ],
 )

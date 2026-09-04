@@ -8,5 +8,4 @@ export default {
   dbCredentials: {
     url: env.DATABASE_URL,
   },
-  tablesFilter: ['wa-case-study_*'],
 } satisfies Config
