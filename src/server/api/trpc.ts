@@ -6,11 +6,25 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC } from '@trpc/server'
+import { initTRPC, TRPCError } from '@trpc/server'
 import superjson from 'superjson'
 import { ZodError } from 'zod'
 
+import { AUTH_COOKIE_NAME, verifyAuthToken, type AuthSessionPayload } from '~/server/auth/cookie'
 import { db } from '~/server/db'
+
+function getCookieFromHeaders(headers: Headers, name: string): string | null {
+  const cookieHeader = headers.get('cookie')
+  if (!cookieHeader) return null
+  const cookieList = cookieHeader.split(';')
+  for (const cookie of cookieList) {
+    const [key, ...valParts] = cookie.trim().split('=')
+    if (key === name) {
+      return decodeURIComponent(valParts.join('='))
+    }
+  }
+  return null
+}
 
 /**
  * 1. CONTEXT
@@ -25,8 +39,12 @@ import { db } from '~/server/db'
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
+  const token = getCookieFromHeaders(opts.headers, AUTH_COOKIE_NAME)
+  const user: AuthSessionPayload | null = token ? verifyAuthToken(token) : null
+
   return {
     db,
+    user,
     ...opts,
   }
 }
@@ -104,3 +122,66 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware)
+
+/**
+ * Protected (authenticated) procedure
+ */
+const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+  if (!ctx.user?.userId) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' })
+  }
+  return next({
+    ctx: {
+      user: ctx.user,
+    },
+  })
+})
+
+export const protectedProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(enforceUserIsAuthed)
+
+/**
+ * Admin-only procedure
+ */
+const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
+  if (!ctx.user?.userId) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' })
+  }
+  if (ctx.user.role !== 'admin') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' })
+  }
+  return next({
+    ctx: {
+      user: ctx.user,
+    },
+  })
+})
+
+export const adminProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(enforceUserIsAdmin)
+
+/**
+ * Creator-only procedure
+ */
+const enforceUserIsCreator = t.middleware(({ ctx, next }) => {
+  if (!ctx.user?.userId) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' })
+  }
+  if (ctx.user.role !== 'creator') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Creator access required',
+    })
+  }
+  return next({
+    ctx: {
+      user: ctx.user,
+    },
+  })
+})
+
+export const creatorProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(enforceUserIsCreator)
