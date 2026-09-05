@@ -87,7 +87,7 @@ export function CampaignForm({ open, onOpenChange, editId }: Props) {
     if (editId && existing) {
       reset({
         title: existing.title,
-        platforms: existing.platforms as CreateCampaignInput['platforms'],
+        platforms: existing.platforms,
         payoutPer1kViews: existing.payoutPer1kViews,
         totalBudget: existing.totalBudget,
         status: existing.status,
