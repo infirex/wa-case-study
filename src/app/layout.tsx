@@ -2,6 +2,7 @@ import '~/styles/globals.css'
 
 import { type Metadata } from 'next'
 import { Geist } from 'next/font/google'
+import { ThemeProvider as NextThemesProvider } from 'next-themes'
 
 import { Header } from '~/components/header'
 import { Toaster } from '~/components/ui/toast'
@@ -22,14 +23,22 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`dark ${geist.variable}`}>
+    <html lang="en" className={geist.variable} suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <TRPCReactProvider>
-          <Header />
-          {children}
-          <Toaster />
-        </TRPCReactProvider>
+        <NextThemesProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          storageKey="wayv-theme"
+        >
+          <TRPCReactProvider>
+            <Header />
+            {children}
+            <Toaster />
+          </TRPCReactProvider>
+        </NextThemesProvider>
       </body>
     </html>
   )
 }
+

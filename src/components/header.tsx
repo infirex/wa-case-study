@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { api } from '~/trpc/react'
+import { ThemeToggle } from './theme-toggle'
 import { UserSwitcher } from './user-switcher'
 
 export function Header() {
@@ -50,8 +51,12 @@ export function Header() {
             )}
           </nav>
         </div>
-        <UserSwitcher />
+        <div className="flex items-center gap-3">
+          <UserSwitcher />
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   )
 }
+
