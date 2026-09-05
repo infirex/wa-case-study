@@ -1,57 +1,49 @@
+import Link from 'next/link'
+import { SparklesIcon, LayoutDashboardIcon, UserIcon } from 'lucide-react'
 import { api, HydrateClient } from '~/trpc/server'
+import { Badge } from '~/components/ui/badge'
+import { buttonVariants } from '~/components/ui/button'
+import { cn } from '~/lib/utils'
 
 export default async function Home() {
   const me = await api.user.me()
 
   return (
     <HydrateClient>
-      <main className="flex flex-col items-center justify-center text-white">
+      <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center">
         <div className="container flex max-w-2xl flex-col items-center justify-center gap-8 px-4 py-16 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl">
-            Wayv Agency <span className="text-indigo-500">Case Study</span>
-          </h1>
+          <div className="space-y-3">
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-6xl">
+              Wayv Agency <span className="text-primary">Case Study</span>
+            </h1>
+            <p className="mx-auto max-w-lg text-sm text-muted-foreground sm:text-base">
+              Creator Marketplace Platform — Campaign Management & View Ingestion Case Study
+            </p>
+          </div>
 
-          <div className="w-full rounded-xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur">
-            <h2 className="text-sm font-semibold tracking-wider text-slate-400 uppercase">
-              Current Authenticated Session (RSC)
-            </h2>
+          <div className="w-full rounded-xl border border-border bg-card/80 p-6 shadow-sm backdrop-blur">
+            <div className="flex items-center justify-center gap-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+              <UserIcon className="h-4 w-4" />
+              <span>Current Authenticated Session (RSC)</span>
+            </div>
 
             {me ? (
               <div className="mt-4 flex flex-col items-center justify-center gap-4">
-                <p className="text-lg font-medium text-slate-200">{me.email}</p>
+                <p className="text-lg font-medium text-card-foreground">{me.email}</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-400">
-                    User ID: {me.userId}
+                  <span className="text-xs text-muted-foreground">
+                    User ID: <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{me.userId}</code>
                   </span>
-                  <span
-                    className={`rounded px-2 py-0.5 text-xs font-semibold tracking-wider uppercase ${
-                      me.role === 'admin'
-                        ? 'border border-rose-500/20 bg-rose-500/10 text-rose-400'
-                        : 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
-                    }`}
+                  <Badge
+                    variant={me.role === 'admin' ? 'destructive' : 'secondary'}
+                    className="uppercase text-[10px] tracking-wider"
                   >
                     {me.role}
-                  </span>
-                </div>
-                <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-                  <a
-                    href="/creator/campaigns"
-                    className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-500"
-                    id="btn-go-creator"
-                  >
-                    Explore Active Campaigns
-                  </a>
-                  <a
-                    href="/admin/campaigns"
-                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-700"
-                    id="btn-go-admin"
-                  >
-                    Admin Dashboard
-                  </a>
+                  </Badge>
                 </div>
               </div>
             ) : (
-              <p className="mt-4 text-sm text-slate-400">
+              <p className="mt-4 text-sm text-muted-foreground">
                 No active user session. Select a user from top right dropdown.
               </p>
             )}
@@ -61,3 +53,4 @@ export default async function Home() {
     </HydrateClient>
   )
 }
+
