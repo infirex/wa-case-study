@@ -165,7 +165,7 @@ export const campaignRouter = createTRPCRouter({
         totalApprovedViews,
         payoutPer1kViews: campaign.payoutPer1kViews,
         budgetSpent: totalBudgetSpent,
-        budgetRemaining: campaign.totalBudget,
+        budgetRemaining: Math.max(0, campaign.totalBudget),
         status: campaign.status,
         dailyViews: dailyViewsList,
       }

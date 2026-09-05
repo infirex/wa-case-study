@@ -125,4 +125,78 @@ describe('Ingest Script Logic & Idempotency', () => {
 
     vi.restoreAllMocks()
   })
+
+  it('updates campaign totalBudget when new metrics yield incremental payout', async () => {
+    let updatedCampaignBudget: number | undefined
+    let campaignStatus: string | undefined
+
+    // Mock insert for submissionMetrics returning 2000 views
+    vi.spyOn(db, 'insert').mockImplementation(() => {
+      return {
+        values: () => ({
+          onConflictDoNothing: () => ({
+            returning: () => Promise.resolve([{ submissionId: 'sub-1', views: 2000 }]),
+          }),
+        }),
+      } as unknown as ReturnType<typeof db.insert>
+    })
+
+    // Mock second select inside loop for fetching campaign
+    let selectCallIndex = 0
+    vi.spyOn(db, 'select').mockImplementation(() => {
+      selectCallIndex++
+      if (selectCallIndex === 1) {
+        // First select: approved submissions
+        return {
+          from: () => ({
+            where: () => ({
+              then: <T>(cb: (data: unknown[]) => T): Promise<T> =>
+                Promise.resolve(cb([{ id: 'sub-1', campaignId: 'camp-1', status: 'approved' }])),
+            }),
+          }),
+        } as unknown as ReturnType<typeof db.select>
+      } else if (selectCallIndex === 2) {
+        // Second select: latest metric before insert (800 views)
+        return {
+          from: () => ({
+            where: () => ({
+              orderBy: () => ({
+                limit: () => Promise.resolve([{ views: 800 }]),
+              }),
+            }),
+          }),
+        } as unknown as ReturnType<typeof db.select>
+      } else {
+        // Third select: campaign row
+        return {
+          from: () => ({
+            where: () =>
+              Promise.resolve([
+                { id: 'camp-1', payoutPer1kViews: 100, totalBudget: 1000, status: 'active' },
+              ]),
+          }),
+        } as unknown as ReturnType<typeof db.select>
+      }
+    })
+
+    // Mock campaign update
+    vi.spyOn(db, 'update').mockImplementation(() => {
+      return {
+        set: (data: { totalBudget?: number; status?: string }) => {
+          updatedCampaignBudget = data.totalBudget
+          campaignStatus = data.status
+          return { where: () => Promise.resolve() }
+        },
+      } as unknown as ReturnType<typeof db.update>
+    })
+
+    const result = await runIngestion(new Date('2025-06-15'))
+
+    expect(result.successCount).toBe(1)
+    // 800 views + ~200 added views = ~1000 views -> 100 payout. Budget drops from 1000 to 900.
+    expect(updatedCampaignBudget).toBe(900)
+    expect(campaignStatus).toBe('active')
+
+    vi.restoreAllMocks()
+  })
 })

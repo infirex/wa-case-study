@@ -1,6 +1,7 @@
+import { calcSubmissionPayout } from '~/lib/payout'
 import { desc, eq } from 'drizzle-orm'
 import { db } from '../db'
-import { submissionMetrics, submissions } from '../db/schema'
+import { campaigns, submissionMetrics, submissions } from '../db/schema'
 
 export function getStartOfDay(date = new Date()): Date {
   const d = new Date(date)
@@ -73,6 +74,32 @@ export async function runIngestion(targetDate = new Date()) {
           `  [Submission ${sub.id}] Views updated: ${prevViews} -> ${newViews} (+${addedViews})`,
         )
         successCount++
+
+        // Deduct incremental payout from campaign budget
+        const [campaign] = await db
+          .select()
+          .from(campaigns)
+          .where(eq(campaigns.id, sub.campaignId))
+
+        if (campaign) {
+          const prevPayout = calcSubmissionPayout(prevViews, campaign.payoutPer1kViews)
+          const newPayout = calcSubmissionPayout(newViews, campaign.payoutPer1kViews)
+          const payoutDiff = newPayout - prevPayout
+
+          if (payoutDiff > 0 && campaign.totalBudget > 0) {
+            const actualDeduction = Math.min(payoutDiff, campaign.totalBudget)
+            const updatedBudget = Math.max(0, campaign.totalBudget - actualDeduction)
+
+            await db
+              .update(campaigns)
+              .set({
+                totalBudget: updatedBudget,
+                status: updatedBudget <= 0 ? 'completed' : campaign.status,
+                updatedAt: new Date(),
+              })
+              .where(eq(campaigns.id, campaign.id))
+          }
+        }
       } else {
         console.log(
           `  [Submission ${sub.id}] Already ingested today. Current views: ${prevViews}`,
