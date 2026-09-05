@@ -14,6 +14,7 @@
     "dev": "next dev --turbo",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
+    "ingest": "npx tsx --env-file=.env src/server/scripts/ingest.ts",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "preview": "next build && next start",
