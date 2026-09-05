@@ -8,10 +8,44 @@ import {
   listCampaignsSchema,
   updateCampaignSchema,
 } from '~/lib/schemas/campaign'
-import { adminProcedure, createTRPCRouter } from '~/server/api/trpc'
+import { adminProcedure, createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
 import { campaigns, submissionMetrics, submissions } from '~/server/db/schema'
 
 export const campaignRouter = createTRPCRouter({
+  listActive: protectedProcedure
+    .input(
+      z
+        .object({
+          search: z.string().optional(),
+          platform: z.string().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      const search = input?.search
+      const platform = input?.platform
+
+      const whereConditions = [eq(campaigns.status, 'active')]
+
+      if (search) {
+        whereConditions.push(ilike(campaigns.title, `%${search}%`))
+      }
+
+      const rows = await ctx.db
+        .select()
+        .from(campaigns)
+        .where(and(...whereConditions))
+        .orderBy(sql`${campaigns.createdAt} DESC`)
+
+      if (platform && platform !== 'all') {
+        return rows.filter(
+          (c) => Array.isArray(c.platforms) && c.platforms.includes(platform),
+        )
+      }
+
+      return rows
+    }),
+
   list: adminProcedure
     .input(listCampaignsSchema)
     .query(async ({ ctx, input }) => {

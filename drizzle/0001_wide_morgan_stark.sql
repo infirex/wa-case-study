@@ -1,0 +1,1 @@
+ALTER TABLE "submission" ADD CONSTRAINT "submission_campaign_post_unique" UNIQUE("campaign_id","post_url");

@@ -83,6 +83,7 @@ export const submissions = pgTable(
     index('submission_campaign_idx').on(t.campaignId),
     index('submission_creator_idx').on(t.creatorId),
     index('submission_status_idx').on(t.status),
+    unique('submission_campaign_post_unique').on(t.campaignId, t.postUrl),
   ],
 )
 

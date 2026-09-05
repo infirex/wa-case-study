@@ -49,7 +49,7 @@ export default function CampaignsPage() {
 
   useEffect(() => {
     if (!meLoading && me?.role !== 'admin') {
-      router.replace('/campaigns')
+      router.replace('/creator/campaigns')
     }
   }, [me, meLoading, router])
 

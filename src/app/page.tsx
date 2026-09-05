@@ -17,7 +17,7 @@ export default async function Home() {
             </h2>
 
             {me ? (
-              <div className="mt-4 flex flex-col items-center justify-center gap-2">
+              <div className="mt-4 flex flex-col items-center justify-center gap-4">
                 <p className="text-lg font-medium text-slate-200">{me.email}</p>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-400">
@@ -32,6 +32,22 @@ export default async function Home() {
                   >
                     {me.role}
                   </span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+                  <a
+                    href="/creator/campaigns"
+                    className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-500"
+                    id="btn-go-creator"
+                  >
+                    Explore Active Campaigns
+                  </a>
+                  <a
+                    href="/admin/campaigns"
+                    className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-700"
+                    id="btn-go-admin"
+                  >
+                    Admin Dashboard
+                  </a>
                 </div>
               </div>
             ) : (
