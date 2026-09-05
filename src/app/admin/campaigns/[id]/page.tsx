@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeftIcon, PencilIcon } from 'lucide-react'
+import { ArrowLeftIcon, Loader2Icon, PencilIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useState } from 'react'
@@ -41,8 +41,8 @@ export default function CampaignDetailPage({
 
   if (meLoading || isLoading) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <p className="text-muted-foreground">Loading…</p>
+      <main className="mx-auto flex min-h-[50vh] max-w-7xl items-center justify-center px-4 py-8">
+        <Loader2Icon className="text-primary size-8 animate-spin" />
       </main>
     )
   }

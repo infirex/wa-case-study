@@ -1,6 +1,6 @@
 'use client'
 
-import { PencilIcon, PlusIcon, SearchIcon } from 'lucide-react'
+import { Loader2Icon, PencilIcon, PlusIcon, SearchIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -63,8 +63,8 @@ export default function CampaignsPage() {
 
   if (meLoading) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <p className="text-muted-foreground">Loading…</p>
+      <main className="mx-auto flex min-h-[50vh] max-w-7xl items-center justify-center px-4 py-8">
+        <Loader2Icon className="text-primary size-8 animate-spin" />
       </main>
     )
   }
@@ -154,9 +154,9 @@ export default function CampaignsPage() {
               <TableRow>
                 <TableCell
                   colSpan={8}
-                  className="text-muted-foreground py-12 text-center"
+                  className="py-12 text-center"
                 >
-                  Loading…
+                  <Loader2Icon className="text-primary mx-auto size-6 animate-spin" />
                 </TableCell>
               </TableRow>
             )}
