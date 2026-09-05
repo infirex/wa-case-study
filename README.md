@@ -1,29 +1,87 @@
-# Create T3 App
+# Creator Marketplace (Case Study)
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+> A full-stack creator marketplace platform where brands launch clipping campaigns with strict budget ceilings and creators submit short-form clips. Includes automated view tracking, dynamic payout calculation, and concurrency-safe approval logic.
 
-## What's next? How do I make an app with this?
+🌐 **Live Demo:** [https://wa-case-study-l1zj.vercel.app/](https://wa-case-study-l1zj.vercel.app/)
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+---
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## 🛠 Tech Stack
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- **Framework:** Next.js 15 (App Router)
+- **API Engine:** tRPC v11 (Strict end-to-end type safety)
+- **Database & ORM:** PostgreSQL via Drizzle ORM
+- **UI & Styling:** TailwindCSS & `shadcn/ui`
+- **Validation:** Zod (Shared schemas)
+- **Testing:** Vitest
+- **Package Manager:** Yarn
 
-## Learn More
+---
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## ⚡ Core Features
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+- **Campaign Management:** Brands post campaigns with defined platforms, view payout rates (`payout_per_1k_views`), total budget, and target dates.
+- **Creator Submissions:** Creators submit clip URLs with strict platform regex validation (TikTok, Instagram Reels, YouTube Shorts).
+- **Concurrency & Budget Safety:** Approvals use PostgreSQL row-level locks (`SELECT FOR UPDATE`) within transactions to guarantee zero budget overspending under concurrent admin approvals.
+- **Daily Ingestion Script:** Idempotent metrics ingestion script updating submission views, likes, and calculated payouts (`yarn ingest`).
+- **Dev Auth Switcher:** Dev-only role switcher (`admin` vs `creator`) using signed cookies.
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+---
 
-## How do I deploy this?
+## 🚀 Quick Start
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+### 1. Prerequisites
+- Node.js 18+ or 20+
+- Yarn (`yarn@1.22.22`)
+- PostgreSQL (Docker or local instance)
+
+### 2. Environment Setup
+Create `.env` from template:
+```bash
+cp .env.example .env
+```
+Set PostgreSQL connection string:
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/wa_case_study"
+NODE_ENV="development"
+```
+
+### 3. Database Setup
+Generate and apply migrations, then seed test data:
+```bash
+yarn db:generate
+yarn db:migrate
+yarn db:seed
+```
+
+### 4. Development Server
+```bash
+yarn dev
+```
+Open [http://localhost:3000](http://localhost:3000).
+
+---
+
+## 🧪 Available Scripts
+
+| Command | Purpose |
+| --- | --- |
+| `yarn dev` | Start development server |
+| `yarn test` | Run Vitest backend & logic test suite |
+| `yarn ingest` | Execute daily metrics ingestion script |
+| `yarn db:generate` | Generate Drizzle schema migrations |
+| `yarn db:migrate` | Apply database migrations to PostgreSQL |
+| `yarn db:seed` | Seed database with sample campaigns and creators |
+| `yarn check` | Run Next.js linting and TypeScript type checks |
+
+---
+
+## 📚 Documentation
+
+- [docs/NOTES.md](docs/NOTES.md) - Deep dive on concurrency locks (`SELECT FOR UPDATE`), architecture, and technical trade-offs.
+
+---
+
+## 📄 License
+
+MIT
