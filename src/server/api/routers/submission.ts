@@ -3,7 +3,8 @@ import { and, eq, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { calcSubmissionPayout, clampToBudget } from '~/lib/payout'
-import { adminProcedure, createTRPCRouter } from '~/server/api/trpc'
+import { createSubmissionSchema, detectPlatformFromUrl } from '~/lib/schemas/submission'
+import { adminProcedure, createTRPCRouter, creatorProcedure } from '~/server/api/trpc'
 import {
   campaigns,
   submissionMetrics,
@@ -12,6 +13,91 @@ import {
 } from '~/server/db/schema'
 
 export const submissionRouter = createTRPCRouter({
+  /**
+   * Submit a video clip URL for an active campaign (Creator only).
+   */
+  create: creatorProcedure
+    .input(createSubmissionSchema)
+    .mutation(async ({ ctx, input }) => {
+      const detectedPlatform = detectPlatformFromUrl(input.postUrl)
+      if (!detectedPlatform) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'URL must be from a supported platform (TikTok, Instagram, or YouTube)',
+        })
+      }
+
+      const [campaign] = await ctx.db
+        .select()
+        .from(campaigns)
+        .where(eq(campaigns.id, input.campaignId))
+
+      if (!campaign) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Campaign not found',
+        })
+      }
+
+      if (campaign.status !== 'active') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Cannot submit to a campaign with status '${campaign.status}'`,
+        })
+      }
+
+      const supportedPlatforms = Array.isArray(campaign.platforms)
+        ? (campaign.platforms)
+        : []
+
+      if (!supportedPlatforms.includes(detectedPlatform)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Campaign does not support ${detectedPlatform}. Supported platforms: ${supportedPlatforms.join(', ')}`,
+        })
+      }
+
+      const [existing] = await ctx.db
+        .select({ id: submissions.id })
+        .from(submissions)
+        .where(
+          and(
+            eq(submissions.campaignId, input.campaignId),
+            eq(submissions.postUrl, input.postUrl),
+          ),
+        )
+
+      if (existing) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'This URL has already been submitted to this campaign',
+        })
+      }
+
+      try {
+        const [newSubmission] = await ctx.db
+          .insert(submissions)
+          .values({
+            campaignId: input.campaignId,
+            creatorId: ctx.user.userId,
+            postUrl: input.postUrl,
+            platform: detectedPlatform,
+            status: 'pending',
+          })
+          .returning()
+
+        return newSubmission!
+      } catch (err: unknown) {
+        if (err instanceof Error && err.message.includes('submission_campaign_post_unique')) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'This URL has already been submitted to this campaign',
+          })
+        }
+        throw err
+      }
+    }),
+
   /**
    * List submissions for a campaign (for admin review queue).
    */

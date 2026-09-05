@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
+import { SubmitClipModal } from '~/components/creator/submit-clip-modal'
 import { api } from '~/trpc/react'
 
 function formatCurrency(amount: number) {
@@ -76,11 +77,28 @@ function getPlatformBadge(platform: string) {
 export function ActiveCampaignsList() {
   const [search, setSearch] = useState('')
   const [platformFilter, setPlatformFilter] = useState('all')
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedCampaign, setSelectedCampaign] = useState<{
+    id: string
+    title: string
+    platforms: string[]
+    payoutPer1kViews: number
+  } | null>(null)
 
   const { data: campaigns, isLoading, isError } = api.campaign.listActive.useQuery({
     search: search || undefined,
     platform: platformFilter !== 'all' ? platformFilter : undefined,
   })
+
+  const openSubmitModal = (c: {
+    id: string
+    title: string
+    platforms: string[]
+    payoutPer1kViews: number
+  }) => {
+    setSelectedCampaign(c)
+    setModalOpen(true)
+  }
 
   return (
     <div className="space-y-6">
@@ -212,7 +230,11 @@ export function ActiveCampaignsList() {
 
               {/* Action Button */}
               <div className="mt-6 pt-4 border-t border-border">
-                <Button className="w-full" id={`btn-submit-${campaign.id}`}>
+                <Button
+                  className="w-full cursor-pointer"
+                  id={`btn-submit-${campaign.id}`}
+                  onClick={() => openSubmitModal(campaign)}
+                >
                   <Video className="mr-2 h-4 w-4" />
                   Submit Clip
                 </Button>
@@ -221,6 +243,13 @@ export function ActiveCampaignsList() {
           ))}
         </div>
       )}
+
+      {/* Submit Clip Dialog */}
+      <SubmitClipModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        campaign={selectedCampaign}
+      />
     </div>
   )
 }

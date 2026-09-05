@@ -4,6 +4,7 @@ import { type Metadata } from 'next'
 import { Geist } from 'next/font/google'
 
 import { Header } from '~/components/header'
+import { Toaster } from '~/components/ui/toast'
 import { TRPCReactProvider } from '~/trpc/react'
 
 export const metadata: Metadata = {
@@ -26,6 +27,7 @@ export default function RootLayout({
         <TRPCReactProvider>
           <Header />
           {children}
+          <Toaster />
         </TRPCReactProvider>
       </body>
     </html>
