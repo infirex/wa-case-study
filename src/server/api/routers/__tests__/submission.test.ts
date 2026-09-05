@@ -153,4 +153,26 @@ describe('submissionRouter access control', () => {
       }),
     ).rejects.toThrow()
   })
+
+  it('blocks unauthenticated users from listMine', async () => {
+    const caller = submissionRouter.createCaller({
+      db: {} as DB,
+      user: null,
+      headers: new Headers(),
+    })
+    await expect(caller.listMine({})).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    })
+  })
+
+  it('blocks admin users from listMine', async () => {
+    const caller = submissionRouter.createCaller({
+      db: {} as DB,
+      user: { userId: 'usr_admin', role: 'admin' },
+      headers: new Headers(),
+    })
+    await expect(caller.listMine({})).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+    })
+  })
 })

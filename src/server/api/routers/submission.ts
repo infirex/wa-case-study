@@ -308,4 +308,73 @@ export const submissionRouter = createTRPCRouter({
 
       return { submissionId: input.submissionId }
     }),
+
+  /**
+   * List creator's own submissions (Creator only).
+   */
+  listMine: creatorProcedure
+    .input(
+      z.object({
+        status: z
+          .enum(['pending', 'approved', 'rejected', 'paid', 'all'])
+          .optional()
+          .default('all'),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { status } = input
+
+      const whereConditions = [eq(submissions.creatorId, ctx.user.userId)]
+      if (status && status !== 'all') {
+        whereConditions.push(eq(submissions.status, status))
+      }
+
+      const rows = await ctx.db
+        .select({
+          id: submissions.id,
+          campaignId: submissions.campaignId,
+          campaignTitle: campaigns.title,
+          payoutPer1kViews: campaigns.payoutPer1kViews,
+          postUrl: submissions.postUrl,
+          platform: submissions.platform,
+          status: submissions.status,
+          rejectionReason: submissions.rejectionReason,
+          createdAt: submissions.createdAt,
+          updatedAt: submissions.updatedAt,
+        })
+        .from(submissions)
+        .leftJoin(campaigns, eq(submissions.campaignId, campaigns.id))
+        .where(and(...whereConditions))
+        .orderBy(sql`${submissions.createdAt} DESC`)
+
+      const subIds = rows.map((r) => r.id)
+      const metricsMap: Record<string, number> = {}
+
+      if (subIds.length > 0) {
+        const metrics = await ctx.db
+          .select({
+            submissionId: submissionMetrics.submissionId,
+            views: submissionMetrics.views,
+          })
+          .from(submissionMetrics)
+          .where(inArray(submissionMetrics.submissionId, subIds))
+          .orderBy(sql`${submissionMetrics.capturedAt} DESC`)
+
+        for (const m of metrics) {
+          metricsMap[m.submissionId] ??= m.views
+        }
+      }
+
+      return rows.map((r) => {
+        const views = metricsMap[r.id] ?? 0
+        const payoutPer1k = r.payoutPer1kViews ?? 0
+        const estimatedEarnings = calcSubmissionPayout(views, payoutPer1k)
+
+        return {
+          ...r,
+          views,
+          estimatedEarnings,
+        }
+      })
+    }),
 })
