@@ -108,4 +108,15 @@ describe('campaignRouter access control', () => {
       }),
     ).rejects.toMatchObject({ code: 'UNAUTHORIZED' })
   })
+
+  it('blocks creator from campaign.getOverview', async () => {
+    const caller = campaignRouter.createCaller({
+      db: {} as DB,
+      user: { userId: 'usr_creator', role: 'creator' },
+      headers: new Headers(),
+    })
+    await expect(
+      caller.getOverview({ id: '123e4567-e89b-12d3-a456-426614174000' }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' })
+  })
 })
