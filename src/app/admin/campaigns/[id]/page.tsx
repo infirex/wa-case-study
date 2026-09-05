@@ -1,15 +1,15 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { ArrowLeftIcon, PencilIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeftIcon, PencilIcon } from 'lucide-react'
+import { use, useEffect, useState } from 'react'
 
+import { CampaignForm } from '~/components/admin/campaign-form'
+import { CampaignOverview } from '~/components/admin/campaign-overview'
+import { CampaignStatusBadge } from '~/components/admin/campaign-status-badge'
+import { ReviewQueue } from '~/components/admin/review-queue'
 import { Button } from '~/components/ui/button'
-import { CampaignForm } from '~/components/campaigns/campaign-form'
-import { CampaignOverview } from '~/components/campaigns/campaign-overview'
-import { CampaignStatusBadge } from '~/components/campaigns/campaign-status-badge'
-import { ReviewQueue } from '~/components/campaigns/review-queue'
 import { api } from '~/trpc/react'
 
 function formatDate(d: Date) {
@@ -33,10 +33,11 @@ export default function CampaignDetailPage({
     }
   }, [me, meLoading, router])
 
-  const { data: campaign, isLoading, isError } = api.campaign.getById.useQuery(
-    { id },
-    { enabled: me?.role === 'admin' },
-  )
+  const {
+    data: campaign,
+    isLoading,
+    isError,
+  } = api.campaign.getById.useQuery({ id }, { enabled: me?.role === 'admin' })
 
   if (meLoading || isLoading) {
     return (
@@ -59,12 +60,12 @@ export default function CampaignDetailPage({
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8 flex flex-col gap-8">
+    <main className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8">
       {/* Top Header Navigation */}
       <div>
         <Link
           href="/admin/campaigns"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1.5 text-sm transition-colors"
         >
           <ArrowLeftIcon className="size-4" />
           All campaigns
@@ -73,12 +74,21 @@ export default function CampaignDetailPage({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-semibold tracking-tight">{campaign.title}</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {campaign.title}
+              </h1>
               <CampaignStatusBadge status={campaign.status} />
             </div>
-            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+            <div className="text-muted-foreground flex flex-wrap items-center gap-4 text-xs">
               <span>
-                Duration: <strong className="text-foreground font-normal">{formatDate(campaign.startsAt)}</strong> – <strong className="text-foreground font-normal">{formatDate(campaign.endsAt)}</strong>
+                Duration:{' '}
+                <strong className="text-foreground font-normal">
+                  {formatDate(campaign.startsAt)}
+                </strong>{' '}
+                –{' '}
+                <strong className="text-foreground font-normal">
+                  {formatDate(campaign.endsAt)}
+                </strong>
               </span>
               <span>•</span>
               <div className="flex items-center gap-1.5">
@@ -86,7 +96,7 @@ export default function CampaignDetailPage({
                 {campaign.platforms.map((p) => (
                   <span
                     key={p}
-                    className="capitalize rounded bg-muted px-2 py-0.5 text-xs font-medium text-foreground"
+                    className="bg-muted text-foreground rounded px-2 py-0.5 text-xs font-medium capitalize"
                   >
                     {p}
                   </span>
@@ -111,7 +121,10 @@ export default function CampaignDetailPage({
       <CampaignOverview campaignId={id} />
 
       {/* Review Queue */}
-      <ReviewQueue campaignId={id} payoutPer1kViews={campaign.payoutPer1kViews} />
+      <ReviewQueue
+        campaignId={id}
+        payoutPer1kViews={campaign.payoutPer1kViews}
+      />
 
       <CampaignForm open={editOpen} onOpenChange={setEditOpen} editId={id} />
     </main>
