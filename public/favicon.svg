@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B0F19" />
+      <stop offset="50%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#070A10" />
+    </linearGradient>
+
+    <!-- Border Gradient -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.6" />
+      <stop offset="50%" stop-color="#818CF8" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#C084FC" stop-opacity="0.6" />
+    </linearGradient>
+
+    <!-- Wave Main Gradient -->
+    <linearGradient id="waveMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="45%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#8B5CF6" />
+    </linearGradient>
+
+    <!-- Wave Highlight Gradient -->
+    <linearGradient id="waveHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#A855F7" />
+    </linearGradient>
+
+    <!-- Glow Filter -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Container Box -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="6" />
+
+  <!-- Ambient Glow -->
+  <circle cx="256" cy="256" r="160" fill="#3B82F6" opacity="0.12" filter="blur(40px)" />
+  <circle cx="340" cy="200" r="100" fill="#8B5CF6" opacity="0.15" filter="blur(35px)" />
+
+  <!-- Wayv 'W' Dynamic Sound Wave Path -->
+  <g filter="url(#neonGlow)">
+    <!-- Back Wave Layer -->
+    <path d="M 96 180 C 120 180, 140 340, 176 340 C 212 340, 226 230, 256 230 C 286 230, 300 340, 336 340 C 372 340, 392 180, 416 180" 
+          fill="none" stroke="url(#waveHighlight)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" opacity="0.4" />
+
+    <!-- Main Wave Layer (W Monogram) -->
+    <path d="M 104 184 C 124 184, 144 344, 180 344 C 216 344, 230 220, 256 220 C 282 220, 296 344, 332 344 C 368 344, 388 184, 408 184" 
+          fill="none" stroke="url(#waveMain)" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Sharp Flow Accent Lines -->
+    <path d="M 130 210 C 145 220, 160 310, 180 310 C 200 310, 215 235, 235 235" 
+          fill="none" stroke="#E0F2FE" stroke-width="10" stroke-linecap="round" opacity="0.85" />
+          
+    <path d="M 277 235 C 297 235, 312 310, 332 310 C 352 310, 367 220, 382 210" 
+          fill="none" stroke="#F3E8FF" stroke-width="10" stroke-linecap="round" opacity="0.85" />
+  </g>
+
+  <!-- Pulse Dot (Clipping / Action Node) -->
+  <circle cx="256" cy="156" r="18" fill="#38BDF8" />
+  <circle cx="256" cy="156" r="28" fill="none" stroke="#38BDF8" stroke-width="4" opacity="0.5" />
+</svg>

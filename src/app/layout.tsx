@@ -11,7 +11,9 @@ import { TRPCReactProvider } from '~/trpc/react'
 export const metadata: Metadata = {
   title: 'Wayv Clipping Marketplace',
   description: 'Creator marketplace for short-form clipping campaigns',
-  icons: [{ rel: 'icon', url: '/favicon.ico' }],
+  icons: [
+    { rel: 'icon', type: 'image/svg+xml', url: '/favicon.svg' },
+  ],
 }
 
 const geist = Geist({
