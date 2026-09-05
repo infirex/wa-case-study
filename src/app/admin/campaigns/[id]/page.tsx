@@ -8,6 +8,7 @@ import { ArrowLeftIcon, PencilIcon } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { CampaignForm } from '~/components/campaigns/campaign-form'
 import { CampaignStatusBadge } from '~/components/campaigns/campaign-status-badge'
+import { ReviewQueue } from '~/components/campaigns/review-queue'
 import { api } from '~/trpc/react'
 
 function formatCents(cents: number) {
@@ -111,12 +112,9 @@ export default function CampaignDetailPage({
         </div>
       </div>
 
-      {/* Review queue placeholder — Phase 5 "Review Queue" step */}
+      {/* Review Queue */}
       <div className="mt-10">
-        <h2 className="text-lg font-semibold mb-4">Submission Review Queue</h2>
-        <p className="text-sm text-muted-foreground rounded-lg border border-dashed p-8 text-center">
-          Review queue coming in the next step (Review Queue feature).
-        </p>
+        <ReviewQueue campaignId={id} payoutPer1kViews={campaign.payoutPer1kViews} />
       </div>
 
       <CampaignForm open={editOpen} onOpenChange={setEditOpen} editId={id} />

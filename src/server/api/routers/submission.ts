@@ -1,12 +1,80 @@
 import { TRPCError } from '@trpc/server'
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { calcSubmissionPayout, clampToBudget } from '~/lib/payout'
 import { adminProcedure, createTRPCRouter } from '~/server/api/trpc'
-import { campaigns, submissions, submissionMetrics } from '~/server/db/schema'
+import {
+  campaigns,
+  submissionMetrics,
+  submissions,
+  users,
+} from '~/server/db/schema'
 
 export const submissionRouter = createTRPCRouter({
+  /**
+   * List submissions for a campaign (for admin review queue).
+   */
+  listByCampaign: adminProcedure
+    .input(
+      z.object({
+        campaignId: z.uuid(),
+        status: z
+          .enum(['pending', 'approved', 'rejected', 'paid', 'all'])
+          .optional()
+          .default('all'),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { campaignId, status } = input
+
+      const whereConditions = [eq(submissions.campaignId, campaignId)]
+      if (status && status !== 'all') {
+        whereConditions.push(eq(submissions.status, status))
+      }
+
+      const rows = await ctx.db
+        .select({
+          id: submissions.id,
+          campaignId: submissions.campaignId,
+          creatorId: submissions.creatorId,
+          creatorEmail: users.email,
+          postUrl: submissions.postUrl,
+          platform: submissions.platform,
+          status: submissions.status,
+          rejectionReason: submissions.rejectionReason,
+          createdAt: submissions.createdAt,
+          updatedAt: submissions.updatedAt,
+        })
+        .from(submissions)
+        .leftJoin(users, eq(submissions.creatorId, users.id))
+        .where(and(...whereConditions))
+        .orderBy(sql`${submissions.createdAt} DESC`)
+
+      const subIds = rows.map((r) => r.id)
+      const metricsMap: Record<string, number> = {}
+
+      if (subIds.length > 0) {
+        const metrics = await ctx.db
+          .select({
+            submissionId: submissionMetrics.submissionId,
+            views: submissionMetrics.views,
+          })
+          .from(submissionMetrics)
+          .where(inArray(submissionMetrics.submissionId, subIds))
+          .orderBy(sql`${submissionMetrics.capturedAt} DESC`)
+
+        for (const m of metrics) {
+          metricsMap[m.submissionId] ??= m.views
+        }
+      }
+
+      return rows.map((r) => ({
+        ...r,
+        views: metricsMap[r.id] ?? 0,
+      }))
+    }),
+
   /**
    * Approve a submission.
    *
@@ -30,7 +98,10 @@ export const submissionRouter = createTRPCRouter({
           .where(eq(submissions.id, input.submissionId))
 
         if (!submission) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Submission not found' })
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Submission not found',
+          })
         }
 
         if (submission.status !== 'pending') {
@@ -48,7 +119,10 @@ export const submissionRouter = createTRPCRouter({
           .for('update')
 
         if (!campaign) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Campaign not found' })
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Campaign not found',
+          })
         }
 
         if (campaign.status === 'completed') {
@@ -124,7 +198,10 @@ export const submissionRouter = createTRPCRouter({
         .where(eq(submissions.id, input.submissionId))
 
       if (!submission) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Submission not found' })
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Submission not found',
+        })
       }
 
       if (submission.status !== 'pending') {
