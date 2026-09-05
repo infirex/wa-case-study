@@ -97,9 +97,12 @@ export async function runIngestion(targetDate = new Date()) {
   }
 }
 
-runIngestion()
-  .then(() => process.exit(0))
-  .catch((err) => {
-    console.error('❌ Critical failure in ingestion script:', err)
-    process.exit(1)
-  })
+if (process.argv[1]?.includes('ingest')) {
+  runIngestion()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error('❌ Critical failure in ingestion script:', err)
+      process.exit(1)
+    })
+}
+
