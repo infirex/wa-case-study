@@ -110,7 +110,10 @@ export function CampaignForm({ open, onOpenChange, editId }: Props) {
   const update = api.campaign.update.useMutation({
     onSuccess: () => {
       void utils.campaign.list.invalidate()
-      void utils.campaign.getById.invalidate({ id: editId! })
+      if (editId) {
+        void utils.campaign.getById.invalidate({ id: editId })
+        void utils.campaign.getOverview.invalidate({ id: editId })
+      }
       onOpenChange(false)
     },
   })

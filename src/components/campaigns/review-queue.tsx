@@ -63,6 +63,8 @@ export function ReviewQueue({ campaignId, payoutPer1kViews }: Props) {
     onSuccess: () => {
       void utils.submission.listByCampaign.invalidate({ campaignId })
       void utils.campaign.getById.invalidate({ id: campaignId })
+      void utils.campaign.getOverview.invalidate({ id: campaignId })
+      void utils.campaign.list.invalidate()
       setApprovingId(null)
       setErrorMsg(null)
     },
