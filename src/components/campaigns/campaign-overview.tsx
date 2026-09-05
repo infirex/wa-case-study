@@ -2,16 +2,13 @@
 
 import { EyeIcon, FilmIcon, DollarSignIcon, WalletIcon } from 'lucide-react'
 
+import { formatCents } from '~/lib/utils'
 import { api } from '~/trpc/react'
 
 import { DailyViewsChart } from './daily-views-chart'
 
 type Props = {
   campaignId: string
-}
-
-function formatCents(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`
 }
 
 function formatNumber(n: number) {

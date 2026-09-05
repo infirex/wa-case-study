@@ -27,6 +27,8 @@ import {
   detectPlatformFromUrl,
   type CreateSubmissionInput,
 } from '~/lib/schemas/submission'
+import type { Platform } from '~/lib/schemas/campaign'
+import { formatCents } from '~/lib/utils'
 import { api } from '~/trpc/react'
 
 interface SubmitClipModalProps {
@@ -35,13 +37,9 @@ interface SubmitClipModalProps {
   campaign: {
     id: string
     title: string
-    platforms: string[]
+    platforms: Platform[]
     payoutPer1kViews: number
   } | null
-}
-
-function formatCents(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`
 }
 
 export function SubmitClipModal({

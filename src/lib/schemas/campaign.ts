@@ -1,8 +1,21 @@
 import { z } from 'zod'
 
 export const CAMPAIGN_PLATFORMS = ['tiktok', 'instagram', 'youtube'] as const
+export type Platform = (typeof CAMPAIGN_PLATFORMS)[number]
 
-export const campaignStatusEnum = z.enum(['draft', 'active', 'paused', 'completed'])
+export const CAMPAIGN_STATUSES = ['draft', 'active', 'paused', 'completed'] as const
+export const campaignStatusEnum = z.enum(CAMPAIGN_STATUSES)
+export type CampaignStatus = z.infer<typeof campaignStatusEnum>
+
+export const CAMPAIGN_STATUS_FILTERS = [...CAMPAIGN_STATUSES, 'all'] as const
+export const campaignStatusFilterEnum = z.enum(CAMPAIGN_STATUS_FILTERS)
+export type CampaignStatusFilter = z.infer<typeof campaignStatusFilterEnum>
+
+export const CAMPAIGN_PLATFORM_FILTERS = [...CAMPAIGN_PLATFORMS, 'all'] as const
+export const campaignPlatformFilterEnum = z.enum(CAMPAIGN_PLATFORM_FILTERS)
+export type CampaignPlatformFilter = z.infer<typeof campaignPlatformFilterEnum>
+
+
 
 const validDateString = z
   .string()
@@ -48,6 +61,13 @@ export const listCampaignsSchema = z.object({
   status: campaignStatusEnum.optional(),
 })
 
+export const listActiveCampaignsSchema = z.object({
+  search: z.string().optional(),
+  platform: campaignPlatformFilterEnum.optional(),
+})
+
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>
 export type UpdateCampaignInput = z.infer<typeof updateCampaignSchema>
 export type ListCampaignsInput = z.infer<typeof listCampaignsSchema>
+export type ListActiveCampaignsInput = z.infer<typeof listActiveCampaignsSchema>
+

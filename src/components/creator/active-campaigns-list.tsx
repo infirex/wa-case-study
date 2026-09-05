@@ -14,15 +14,9 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { SubmitClipModal } from '~/components/creator/submit-clip-modal'
+import type { CampaignPlatformFilter, Platform } from '~/lib/schemas/campaign'
+import { formatCents } from '~/lib/utils'
 import { api } from '~/trpc/react'
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(amount)
-}
 
 function formatDate(date: string | Date) {
   return new Date(date).toLocaleDateString('en-US', {
@@ -32,7 +26,7 @@ function formatDate(date: string | Date) {
   })
 }
 
-function getPlatformBadge(platform: string) {
+function getPlatformBadge(platform: Platform) {
   const normalized = platform.toLowerCase()
   if (normalized === 'tiktok') {
     return (
@@ -76,12 +70,12 @@ function getPlatformBadge(platform: string) {
 
 export function ActiveCampaignsList() {
   const [search, setSearch] = useState('')
-  const [platformFilter, setPlatformFilter] = useState('all')
+  const [platformFilter, setPlatformFilter] = useState<CampaignPlatformFilter>('all')
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedCampaign, setSelectedCampaign] = useState<{
     id: string
     title: string
-    platforms: string[]
+    platforms: Platform[]
     payoutPer1kViews: number
   } | null>(null)
 
@@ -93,7 +87,7 @@ export function ActiveCampaignsList() {
   const openSubmitModal = (c: {
     id: string
     title: string
-    platforms: string[]
+    platforms: Platform[]
     payoutPer1kViews: number
   }) => {
     setSelectedCampaign(c)
@@ -118,7 +112,7 @@ export function ActiveCampaignsList() {
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={platformFilter} onValueChange={(val) => setPlatformFilter(val ?? 'all')}>
-            <SelectTrigger className="w-[180px]" id="filter-platform">
+            <SelectTrigger className="w-45" id="filter-platform">
               <SelectValue placeholder="All Platforms" />
             </SelectTrigger>
             <SelectContent>
@@ -202,7 +196,7 @@ export function ActiveCampaignsList() {
                       <span>Rate</span>
                     </div>
                     <p className="mt-1 font-semibold text-sm text-foreground">
-                      {formatCurrency(campaign.payoutPer1kViews)}
+                      {formatCents(campaign.payoutPer1kViews)}
                       <span className="text-xs font-normal text-muted-foreground">
                         {' '}/ 1k views
                       </span>
@@ -214,7 +208,7 @@ export function ActiveCampaignsList() {
                       <span>Budget</span>
                     </div>
                     <p className="mt-1 font-semibold text-sm text-foreground">
-                      {formatCurrency(campaign.totalBudget)}
+                      {formatCents(campaign.totalBudget)}
                     </p>
                   </div>
                 </div>

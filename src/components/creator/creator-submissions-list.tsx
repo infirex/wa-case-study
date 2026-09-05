@@ -17,18 +17,10 @@ import {
 
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import type { SubmissionStatusFilter } from '~/lib/schemas/submission'
+import { formatCents } from '~/lib/utils'
 import { api } from '~/trpc/react'
-
-function formatCurrency(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`
-}
 
 function formatViews(views: number) {
   if (views >= 1_000_000) {
@@ -49,10 +41,10 @@ function formatDate(date: Date | string) {
 }
 
 export function CreatorSubmissionsList() {
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<SubmissionStatusFilter>('all')
 
   const { data: submissions, isLoading, isError } = api.submission.listMine.useQuery({
-    status: statusFilter !== 'all' ? (statusFilter as 'pending' | 'approved' | 'rejected' | 'paid') : undefined,
+    status: statusFilter,
   })
 
   if (isLoading) {
@@ -115,7 +107,7 @@ export function CreatorSubmissionsList() {
             <DollarSign className="h-4 w-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-bold text-emerald-400">
-            {formatCurrency(totalEarnings)}
+            {formatCents(totalEarnings)}
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             From approved clip views
@@ -279,10 +271,10 @@ export function CreatorSubmissionsList() {
                         <span>Estimated Earnings</span>
                       </div>
                       <p className={`font-bold text-base mt-0.5 font-mono ${isApproved ? 'text-emerald-400' : 'text-muted-foreground'}`}>
-                        {formatCurrency(sub.estimatedEarnings)}
+                        {formatCents(sub.estimatedEarnings)}
                       </p>
                       <p className="text-[10px] text-muted-foreground">
-                        {formatCurrency(sub.payoutPer1kViews ?? 0)} / 1k
+                        {formatCents(sub.payoutPer1kViews ?? 0)} / 1k
                       </p>
                     </div>
                   </div>

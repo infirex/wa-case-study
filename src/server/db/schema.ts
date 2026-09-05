@@ -1,5 +1,7 @@
 import { index, pgEnum, pgTable, unique } from 'drizzle-orm/pg-core'
 
+import type { Platform } from '~/lib/schemas/campaign'
+
 export const userRoleEnum = pgEnum('user_role', ['admin', 'creator'])
 
 export const campaignStatusEnum = pgEnum('campaign_status', [
@@ -38,7 +40,7 @@ export const campaigns = pgTable(
   (d) => ({
     id: d.uuid('id').defaultRandom().primaryKey(),
     title: d.text('title').notNull(),
-    platforms: d.json('platforms').$type<string[]>().notNull(),
+    platforms: d.json('platforms').$type<Platform[]>().notNull(),
     payoutPer1kViews: d.integer('payout_per_1k_views').notNull(),
     totalBudget: d.integer('total_budget').notNull(),
     status: campaignStatusEnum('status').notNull().default('draft'),
@@ -68,7 +70,7 @@ export const submissions = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     postUrl: d.text('post_url').notNull(),
-    platform: d.text('platform').notNull(),
+    platform: d.text('platform').$type<Platform>().notNull(),
     status: submissionStatusEnum('status').notNull().default('pending'),
     rejectionReason: d.text('rejection_reason'),
     createdAt: d

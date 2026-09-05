@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { calcSubmissionPayout } from '~/lib/payout'
 import {
   createCampaignSchema,
+  listActiveCampaignsSchema,
   listCampaignsSchema,
   updateCampaignSchema,
 } from '~/lib/schemas/campaign'
@@ -13,14 +14,7 @@ import { campaigns, submissionMetrics, submissions } from '~/server/db/schema'
 
 export const campaignRouter = createTRPCRouter({
   listActive: protectedProcedure
-    .input(
-      z
-        .object({
-          search: z.string().optional(),
-          platform: z.string().optional(),
-        })
-        .optional(),
-    )
+    .input(listActiveCampaignsSchema.optional())
     .query(async ({ ctx, input }) => {
       const search = input?.search
       const platform = input?.platform

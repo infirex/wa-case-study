@@ -3,7 +3,12 @@ import { and, eq, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { calcSubmissionPayout, clampToBudget } from '~/lib/payout'
-import { createSubmissionSchema, detectPlatformFromUrl } from '~/lib/schemas/submission'
+import {
+  createSubmissionSchema,
+  detectPlatformFromUrl,
+  listMineSubmissionsSchema,
+  listSubmissionsSchema,
+} from '~/lib/schemas/submission'
 import { adminProcedure, createTRPCRouter, creatorProcedure } from '~/server/api/trpc'
 import {
   campaigns,
@@ -102,15 +107,8 @@ export const submissionRouter = createTRPCRouter({
    * List submissions for a campaign (for admin review queue).
    */
   listByCampaign: adminProcedure
-    .input(
-      z.object({
-        campaignId: z.uuid(),
-        status: z
-          .enum(['pending', 'approved', 'rejected', 'paid', 'all'])
-          .optional()
-          .default('all'),
-      }),
-    )
+    .input(listSubmissionsSchema)
+
     .query(async ({ ctx, input }) => {
       const { campaignId, status } = input
 
@@ -313,14 +311,7 @@ export const submissionRouter = createTRPCRouter({
    * List creator's own submissions (Creator only).
    */
   listMine: creatorProcedure
-    .input(
-      z.object({
-        status: z
-          .enum(['pending', 'approved', 'rejected', 'paid', 'all'])
-          .optional()
-          .default('all'),
-      }),
-    )
+    .input(listMineSubmissionsSchema)
     .query(async ({ ctx, input }) => {
       const { status } = input
 

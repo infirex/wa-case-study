@@ -25,13 +25,11 @@ import {
 } from '~/components/ui/table'
 import { CampaignForm } from '~/components/campaigns/campaign-form'
 import { CampaignStatusBadge } from '~/components/campaigns/campaign-status-badge'
+import type { CampaignStatusFilter } from '~/lib/schemas/campaign'
+import { formatCents } from '~/lib/utils'
 import { api } from '~/trpc/react'
 
 const PAGE_SIZE = 20
-
-function formatCents(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`
-}
 
 function formatDate(d: Date) {
   return new Date(d).toLocaleDateString('en-US', { dateStyle: 'medium' })
@@ -41,7 +39,7 @@ export default function CampaignsPage() {
   const router = useRouter()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<CampaignStatusFilter>('all')
   const [formOpen, setFormOpen] = useState(false)
   const [editId, setEditId] = useState<string | undefined>(undefined)
 
@@ -58,7 +56,7 @@ export default function CampaignsPage() {
       page,
       pageSize: PAGE_SIZE,
       search: search || undefined,
-      status: statusFilter !== 'all' ? (statusFilter as 'draft' | 'active' | 'paused' | 'completed') : undefined,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
     },
     { enabled: me?.role === 'admin' },
   )

@@ -21,6 +21,8 @@ import {
   TableRow,
 } from '~/components/ui/table'
 import { calcSubmissionPayout } from '~/lib/payout'
+import type { SubmissionStatus, SubmissionStatusFilter } from '~/lib/schemas/submission'
+import { formatCents } from '~/lib/utils'
 import { api } from '~/trpc/react'
 
 import { RejectSubmissionDialog } from './reject-submission-dialog'
@@ -28,10 +30,6 @@ import { RejectSubmissionDialog } from './reject-submission-dialog'
 type Props = {
   campaignId: string
   payoutPer1kViews: number
-}
-
-function formatCents(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`
 }
 
 function formatNumber(n: number) {
@@ -49,7 +47,7 @@ function formatDate(d: Date) {
 
 export function ReviewQueue({ campaignId, payoutPer1kViews }: Props) {
   const utils = api.useUtils()
-  const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('all')
+  const [statusFilter, setStatusFilter] = useState<SubmissionStatusFilter>('all')
   const [approvingId, setApprovingId] = useState<string | null>(null)
   const [rejectingSub, setRejectingSub] = useState<{ id: string; email?: string | null } | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -258,7 +256,7 @@ function SubmissionStatusBadge({
   status,
   rejectionReason,
 }: {
-  status: string
+  status: SubmissionStatus
   rejectionReason?: string | null
 }) {
   switch (status) {
